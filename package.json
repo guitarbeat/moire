@@ -1,0 +1,26 @@
+{
+  "name": "moire",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@babel/core": "^7.22.1",
+    "@babel/preset-env": "^7.22.4",
+    "@babel/preset-react": "^7.22.3",
+    "babel-loader": "^9.1.2",
+    "webpack": "^5.86.0",
+    "webpack-cli": "^5.1.4"
+  },
+  "dependencies": {
+    "ogl": "^0.0.117",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  }
+}
