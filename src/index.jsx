@@ -5,7 +5,7 @@ import React from "react";
 import ReactDOM from "react-dom";
 
 // Importing the WebGLCanvas component from the local file './WebGLCanvas'
-import WebGLCanvas from "./WebGLCanvas";
+import WebGLCanvas from "./WebGLCanvas.jsx";
 import "./style.css";
 
 // Defining a functional component called 'App'
