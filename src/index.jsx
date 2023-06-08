@@ -14,10 +14,8 @@ function App() {
   return (
     // A JSX element can only have one parent element, so we wrap everything in a div
     <div>
-      // The h1 tag will display the text 'Hello, world!'
       <h1>Hello, world!</h1>
-      // Including the WebGLCanvas component in our App component
-      {/* <WebGLCanvas /> */}
+      <WebGLCanvas />
     </div>
   );
 }
