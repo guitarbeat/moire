@@ -1,34 +1,50 @@
-import React, { useEffect, useRef } from 'react';
-import * as ogl from 'ogl';
+import React, { useEffect, useRef } from "react"; // Import React along with the useEffect and useRef hooks.
+import * as ogl from "ogl"; // Import the ogl library for handling WebGL
+import chroma from "chroma-js";
 
+// Define the WebGLCanvas component as a functional component.
 const WebGLCanvas = () => {
+  // useRef hook creates a reference to a DOM element.
   const canvasRef = useRef(null);
 
+  // useEffect hook allows you to perform side-effects in your functional component.
   useEffect(() => {
+    // Define variables for WebGL rendering, camera and other related parameters.
     let renderer, gl, camera;
     let width, height, wWidth, wHeight;
-    let mouse, mouseOver = false;
+    let mouse,
+      mouseOver = false;
     let gridWidth, gridHeight, gridRatio;
     let ripple, points;
     const color1 = new ogl.Color([0.149, 0.141, 0.912]);
-    const color2 = new ogl.Color([1.000, 0.833, 0.224]);
+    const color2 = new ogl.Color([1.0, 0.833, 0.224]);
     let cameraZ = 50;
 
+    // Call the initialization function
     init();
 
+    // Define the initialization function
     function init() {
+      // Create a new WebGL renderer
       renderer = new ogl.Renderer({ dpr: 1 });
+      // Obtain the WebGL rendering context
       gl = renderer.gl;
+      // Append the canvas to the ref
       canvasRef.current.appendChild(gl.canvas);
 
+      // Create a new camera with a field of view of 45 degrees
       camera = new ogl.Camera(gl, { fov: 45 });
+      // Set the camera's position in the 3D space
       camera.position.set(0, 0, cameraZ);
 
+      // Call the resize function and add an event listener for window resize
       resize();
-      window.addEventListener('resize', resize, false);
+      window.addEventListener("resize", resize, false);
 
+      // Initialize the mouse as a 2D vector
       mouse = new ogl.Vec2();
 
+      // Initialize the scene and event listeners, and start the animation
       initScene();
       initEventsListener();
       requestAnimationFrame(animate);
@@ -45,11 +61,12 @@ const WebGLCanvas = () => {
       gridHeight = height;
 
       const ssize = 3; // screen space
-      const wsize = ssize * wWidth / width;
+      const wsize = (ssize * wWidth) / width;
       const nx = Math.floor(gridWidth / ssize) + 1;
       const ny = Math.floor(gridHeight / ssize) + 1;
       const numPoints = nx * ny;
-      const ox = -wsize * (nx / 2 - 0.5), oy = -wsize * (ny / 2 - 0.5);
+      const ox = -wsize * (nx / 2 - 0.5),
+        oy = -wsize * (ny / 2 - 0.5);
       const positions = new Float32Array(numPoints * 3);
       const uvs = new Float32Array(numPoints * 2);
       const sizes = new Float32Array(numPoints);
@@ -57,17 +74,23 @@ const WebGLCanvas = () => {
       let uvx, uvy, uvdx, uvdy;
       gridRatio = gridWidth / gridHeight;
       if (gridRatio >= 1) {
-        uvx = 0; uvdx = 1 / nx;
-        uvy = (1 - 1 / gridRatio) / 2; uvdy = (1 / ny) / gridRatio;
+        uvx = 0;
+        uvdx = 1 / nx;
+        uvy = (1 - 1 / gridRatio) / 2;
+        uvdy = 1 / ny / gridRatio;
       } else {
-        uvx = (1 - 1 * gridRatio) / 2; uvdx = (1 / nx) * gridRatio;
-        uvy = 0; uvdy = 1 / ny;
+        uvx = (1 - 1 * gridRatio) / 2;
+        uvdx = (1 / nx) * gridRatio;
+        uvy = 0;
+        uvdy = 1 / ny;
       }
 
       for (let i = 0; i < nx; i++) {
         const x = ox + i * wsize;
         for (let j = 0; j < ny; j++) {
-          const i1 = i * ny + j, i2 = i1 * 2, i3 = i1 * 3;
+          const i1 = i * ny + j,
+            i2 = i1 * 2,
+            i3 = i1 * 3;
           const y = oy + j * wsize;
           positions.set([x, y, 0], i3);
           uvs.set([uvx + i * uvdx, uvy + j * uvdy], i2);
@@ -78,7 +101,7 @@ const WebGLCanvas = () => {
       const geometry = new ogl.Geometry(gl, {
         position: { size: 3, data: positions },
         uv: { size: 2, data: uvs },
-        size: { size: 1, data: sizes }
+        size: { size: 1, data: sizes },
       });
 
       if (points) {
@@ -88,7 +111,7 @@ const WebGLCanvas = () => {
           uniforms: {
             hmap: { value: ripple.gpgpu.read.texture },
             color1: { value: color1 },
-            color2: { value: color2 }
+            color2: { value: color2 },
           },
           vertex: `
             precision highp float;
@@ -123,7 +146,7 @@ const WebGLCanvas = () => {
             void main() {
               gl_FragColor = vColor;
             }
-          `
+          `,
         });
         points = new ogl.Mesh(gl, { geometry, program, mode: gl.POINTS });
       }
@@ -150,15 +173,27 @@ const WebGLCanvas = () => {
     }
 
     function initEventsListener() {
-      if ('ontouchstart' in window) {
-        document.body.addEventListener('touchstart', onMove, false);
-        document.body.addEventListener('touchmove', onMove, false);
-        document.body.addEventListener('touchend', () => { mouseOver = false; }, false);
+      if ("ontouchstart" in window) {
+        document.body.addEventListener("touchstart", onMove, false);
+        document.body.addEventListener("touchmove", onMove, false);
+        document.body.addEventListener(
+          "touchend",
+          () => {
+            mouseOver = false;
+          },
+          false
+        );
       } else {
-        document.body.addEventListener('mousemove', onMove, false);
-        document.body.addEventListener('mouseleave', () => { mouseOver = false; }, false);
-        document.body.addEventListener('mouseup', randomizeColors, false);
-        document.addEventListener('scroll', (e) => {
+        document.body.addEventListener("mousemove", onMove, false);
+        document.body.addEventListener(
+          "mouseleave",
+          () => {
+            mouseOver = false;
+          },
+          false
+        );
+        document.body.addEventListener("mouseup", randomizeColors, false);
+        document.addEventListener("scroll", (e) => {
           cameraZ = 50 - getScrollPercentage() * 3;
         });
       }
@@ -166,8 +201,10 @@ const WebGLCanvas = () => {
 
     function getScrollPercentage() {
       const topPos = document.documentElement.scrollTop;
-      const remaining = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-      return (topPos / remaining);
+      const remaining =
+        document.documentElement.scrollHeight -
+        document.documentElement.clientHeight;
+      return topPos / remaining;
     }
 
     function onMove(e) {
@@ -177,7 +214,8 @@ const WebGLCanvas = () => {
         e.y = e.changedTouches[0].pageY;
       }
       if (e.x === undefined) {
-        e.x = e.pageX; e.y = e.pageY;
+        e.x = e.pageX;
+        e.y = e.pageY;
       }
       mouse.set(
         (e.x / gl.renderer.width) * 2 - 1,
@@ -194,11 +232,13 @@ const WebGLCanvas = () => {
     }
 
     function resize() {
-      width = window.innerWidth; height = window.innerHeight;
+      width = window.innerWidth;
+      height = window.innerHeight;
       renderer.setSize(width, height);
       camera.perspective({ aspect: width / height });
       const wSize = getWorldSize(camera);
-      wWidth = wSize[0]; wHeight = wSize[1];
+      wWidth = wSize[0];
+      wHeight = wSize[1];
       if (points) initPointsMesh();
     }
 
@@ -210,7 +250,9 @@ const WebGLCanvas = () => {
     }
   }, []);
 
+  // Return a div and attach the ref to it
   return <div ref={canvasRef}></div>;
 };
 
+// Export the WebGLCanvas component
 export default WebGLCanvas;
