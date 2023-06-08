@@ -1,50 +1,35 @@
-import React, { useEffect, useRef } from "react"; // Import React along with the useEffect and useRef hooks.
-import * as ogl from "ogl"; // Import the ogl library for handling WebGL
+import React, { useEffect, useRef } from "react";
+import * as ogl from "ogl";
 import chroma from "chroma-js";
 
-// Define the WebGLCanvas component as a functional component.
 const WebGLCanvas = () => {
-  // useRef hook creates a reference to a DOM element.
   const canvasRef = useRef(null);
 
-  // useEffect hook allows you to perform side-effects in your functional component.
   useEffect(() => {
-    // Define variables for WebGL rendering, camera and other related parameters.
     let renderer, gl, camera;
     let width, height, wWidth, wHeight;
-    let mouse,
-      mouseOver = false;
+    let mouse, mouseOver = false;
     let gridWidth, gridHeight, gridRatio;
     let ripple, points;
     const color1 = new ogl.Color([0.149, 0.141, 0.912]);
     const color2 = new ogl.Color([1.0, 0.833, 0.224]);
     let cameraZ = 50;
 
-    // Call the initialization function
     init();
 
-    // Define the initialization function
     function init() {
-      // Create a new WebGL renderer
       renderer = new ogl.Renderer({ dpr: 1 });
-      // Obtain the WebGL rendering context
       gl = renderer.gl;
-      // Append the canvas to the ref
       canvasRef.current.appendChild(gl.canvas);
 
-      // Create a new camera with a field of view of 45 degrees
       camera = new ogl.Camera(gl, { fov: 45 });
-      // Set the camera's position in the 3D space
       camera.position.set(0, 0, cameraZ);
 
-      // Call the resize function and add an event listener for window resize
       resize();
       window.addEventListener("resize", resize, false);
 
-      // Initialize the mouse as a 2D vector
       mouse = new ogl.Vec2();
 
-      // Initialize the scene and event listeners, and start the animation
       initScene();
       initEventsListener();
       requestAnimationFrame(animate);
@@ -60,13 +45,12 @@ const WebGLCanvas = () => {
       gridWidth = width;
       gridHeight = height;
 
-      const ssize = 3; // screen space
-      const wsize = (ssize * wWidth) / width;
+      const ssize = 3;
+      const wsize = ssize * wWidth / width;
       const nx = Math.floor(gridWidth / ssize) + 1;
       const ny = Math.floor(gridHeight / ssize) + 1;
       const numPoints = nx * ny;
-      const ox = -wsize * (nx / 2 - 0.5),
-        oy = -wsize * (ny / 2 - 0.5);
+      const ox = -wsize * (nx / 2 - 0.5), oy = -wsize * (ny / 2 - 0.5);
       const positions = new Float32Array(numPoints * 3);
       const uvs = new Float32Array(numPoints * 2);
       const sizes = new Float32Array(numPoints);
@@ -74,23 +58,17 @@ const WebGLCanvas = () => {
       let uvx, uvy, uvdx, uvdy;
       gridRatio = gridWidth / gridHeight;
       if (gridRatio >= 1) {
-        uvx = 0;
-        uvdx = 1 / nx;
-        uvy = (1 - 1 / gridRatio) / 2;
-        uvdy = 1 / ny / gridRatio;
+        uvx = 0; uvdx = 1 / nx;
+        uvy = (1 - 1 / gridRatio) / 2; uvdy = 1 / ny / gridRatio;
       } else {
-        uvx = (1 - 1 * gridRatio) / 2;
-        uvdx = (1 / nx) * gridRatio;
-        uvy = 0;
-        uvdy = 1 / ny;
+        uvx = (1 - 1 * gridRatio) / 2; uvdx = (1 / nx) * gridRatio;
+        uvy = 0; uvdy = 1 / ny;
       }
 
       for (let i = 0; i < nx; i++) {
         const x = ox + i * wsize;
         for (let j = 0; j < ny; j++) {
-          const i1 = i * ny + j,
-            i2 = i1 * 2,
-            i3 = i1 * 3;
+          const i1 = i * ny + j, i2 = i1 * 2, i3 = i1 * 3;
           const y = oy + j * wsize;
           positions.set([x, y, 0], i3);
           uvs.set([uvx + i * uvdx, uvy + j * uvdy], i2);
@@ -101,7 +79,7 @@ const WebGLCanvas = () => {
       const geometry = new ogl.Geometry(gl, {
         position: { size: 3, data: positions },
         uv: { size: 2, data: uvs },
-        size: { size: 1, data: sizes },
+        size: { size: 1, data: sizes }
       });
 
       if (points) {
@@ -111,7 +89,7 @@ const WebGLCanvas = () => {
           uniforms: {
             hmap: { value: ripple.gpgpu.read.texture },
             color1: { value: color1 },
-            color2: { value: color2 },
+            color2: { value: color2 }
           },
           vertex: `
             precision highp float;
@@ -146,7 +124,7 @@ const WebGLCanvas = () => {
             void main() {
               gl_FragColor = vColor;
             }
-          `,
+          `
         });
         points = new ogl.Mesh(gl, { geometry, program, mode: gl.POINTS });
       }
@@ -173,27 +151,15 @@ const WebGLCanvas = () => {
     }
 
     function initEventsListener() {
-      if ("ontouchstart" in window) {
-        document.body.addEventListener("touchstart", onMove, false);
-        document.body.addEventListener("touchmove", onMove, false);
-        document.body.addEventListener(
-          "touchend",
-          () => {
-            mouseOver = false;
-          },
-          false
-        );
+      if ('ontouchstart' in window) {
+        document.body.addEventListener('touchstart', onMove, false);
+        document.body.addEventListener('touchmove', onMove, false);
+        document.body.addEventListener('touchend', () => { mouseOver = false; }, false);
       } else {
-        document.body.addEventListener("mousemove", onMove, false);
-        document.body.addEventListener(
-          "mouseleave",
-          () => {
-            mouseOver = false;
-          },
-          false
-        );
-        document.body.addEventListener("mouseup", randomizeColors, false);
-        document.addEventListener("scroll", (e) => {
+        document.body.addEventListener('mousemove', onMove, false);
+        document.body.addEventListener('mouseleave', () => { mouseOver = false; }, false);
+        document.body.addEventListener('mouseup', randomizeColors, false);
+        document.addEventListener('scroll', (e) => {
           cameraZ = 50 - getScrollPercentage() * 3;
         });
       }
@@ -201,10 +167,8 @@ const WebGLCanvas = () => {
 
     function getScrollPercentage() {
       const topPos = document.documentElement.scrollTop;
-      const remaining =
-        document.documentElement.scrollHeight -
-        document.documentElement.clientHeight;
-      return topPos / remaining;
+      const remaining = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      return (topPos / remaining);
     }
 
     function onMove(e) {
@@ -214,8 +178,7 @@ const WebGLCanvas = () => {
         e.y = e.changedTouches[0].pageY;
       }
       if (e.x === undefined) {
-        e.x = e.pageX;
-        e.y = e.pageY;
+        e.x = e.pageX; e.y = e.pageY;
       }
       mouse.set(
         (e.x / gl.renderer.width) * 2 - 1,
@@ -232,13 +195,11 @@ const WebGLCanvas = () => {
     }
 
     function resize() {
-      width = window.innerWidth;
-      height = window.innerHeight;
+      width = window.innerWidth; height = window.innerHeight;
       renderer.setSize(width, height);
       camera.perspective({ aspect: width / height });
       const wSize = getWorldSize(camera);
-      wWidth = wSize[0];
-      wHeight = wSize[1];
+      wWidth = wSize[0]; wHeight = wSize[1];
       if (points) initPointsMesh();
     }
 
@@ -248,11 +209,115 @@ const WebGLCanvas = () => {
       const width = height * cam.aspect;
       return [width, height];
     }
+
+    // Ripple effect class
+    class RippleEffect {
+      constructor(renderer) {
+        const width = 512;
+        const height = 512;
+        this.renderer = renderer;
+        this.gl = renderer.gl;
+        this.width = width;
+        this.height = height;
+        this.delta = new ogl.Vec2(1 / width, 1 / height);
+        this.gpgpu = new GPGPU(this.gl, { width, height });
+        this.initShaders();
+      }
+
+      initShaders() {
+        this.updateProgram = new ogl.Program(this.gl, {
+          uniforms: { tDiffuse: { value: null }, uDelta: { value: this.delta } },
+          vertex: defaultVertex,
+          fragment: `precision highp float; uniform sampler2D tDiffuse; uniform vec2 uDelta; varying vec2 vUv; void main() {vec4 texel = texture2D(tDiffuse, vUv); vec2 dx = vec2(uDelta.x, 0.0), dy = vec2(0.0, uDelta.y); float average = (texture2D(tDiffuse, vUv - dx).r + texture2D(tDiffuse, vUv - dy).r + texture2D(tDiffuse, vUv + dx).r + texture2D(tDiffuse, vUv + dy).r) * 0.25; texel.g += (average - texel.r) * 2.0; texel.g *= 0.8; texel.r += texel.g; gl_FragColor = texel;}`,
+        });
+
+        this.dropProgram = new ogl.Program(this.gl, {
+          uniforms: {
+            tDiffuse: { value: null },
+            uCenter: { value: new ogl.Vec2() },
+            uRadius: { value: 0.05 },
+            uStrength: { value: 0.05 },
+          },
+          vertex: defaultVertex,
+          fragment: `precision highp float; const float PI = 3.1415926535897932384626433832795; uniform sampler2D tDiffuse; uniform vec2 uCenter; uniform float uRadius; uniform float uStrength; varying vec2 vUv; void main() {vec4 texel = texture2D(tDiffuse, vUv); float drop = max(0.0, 1.0 - length(uCenter * 0.5 + 0.5 - vUv) / uRadius); drop = 0.5 - cos(drop * PI) * 0.5; texel.r += drop * uStrength; gl_FragColor = texel;}`,
+        });
+      }
+
+      update() {
+        this.updateProgram.uniforms.tDiffuse.value = this.gpgpu.read.texture;
+        this.gpgpu.renderProgram(this.updateProgram);
+      }
+
+      addDrop(x, y, radius, strength) {
+        const us = this.dropProgram.uniforms;
+        us.tDiffuse.value = this.gpgpu.read.texture;
+        us.uCenter.value.set(x, y);
+        us.uRadius.value = radius;
+        us.uStrength.value = strength;
+        this.gpgpu.renderProgram(this.dropProgram);
+      }
+    }
+
+    class GPGPU {
+      constructor(gl, { width, height, type }) {
+        this.gl = gl;
+        this.width = width;
+        this.height = height;
+        this.numVertexes = width * height;
+        this.read = new RenderTarget(gl, rto(gl, width, height, type));
+        this.write = new RenderTarget(gl, rto(gl, width, height, type));
+        this.mesh = new ogl.Mesh(gl, { geometry: new Triangle(gl) });
+      }
+
+      renderProgram(program) {
+        this.mesh.program = program;
+        this.gl.renderer.render({
+          scene: this.mesh,
+          target: this.write,
+          clear: false,
+        });
+        this.swap();
+      }
+
+      swap() {
+        [this.read, this.write] = [this.write, this.read];
+      }
+    }
+
+    const rto = (gl, width, height, type) => ({
+      width,
+      height,
+      type:
+        type ||
+        gl.HALF_FLOAT ||
+        gl.renderer.extensions["OES_texture_half_float"].HALF_FLOAT_OES,
+      internalFormat: gl.renderer.isWebgl2
+        ? type === gl.FLOAT
+          ? gl.RGBA32F
+          : gl.RGBA16F
+        : gl.RGBA,
+      depth: false,
+      unpackAlignment: 1,
+    });
+
+    const defaultVertex = `
+      attribute vec2 uv, position;
+      varying vec2 vUv;
+      void main() {
+        vUv = uv;
+        gl_Position = vec4(position, 0, 1);
+      }
+    `;
+
+    return () => {
+      renderer.dispose();
+      ripple.gpgpu.dispose();
+      points.geometry.dispose();
+      points.program.dispose();
+    };
   }, []);
 
-  // Return a div and attach the ref to it
   return <div ref={canvasRef}></div>;
 };
 
-// Export the WebGLCanvas component
 export default WebGLCanvas;
